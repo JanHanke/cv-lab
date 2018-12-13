@@ -1,4 +1,3 @@
-#include "../includes/stdafx.h"
 #include "../includes/MonoLoop.h"
 
 using namespace cv;
@@ -56,13 +55,10 @@ int MonoLoop() {
 	return 0;
 }
 
-/*
-
 int main(int argc, char *argv[]) {
 	CMonoLoop myLoop;
 //	myLoop.Run();
 
 	return MonoLoop();
 }
-*/
 
