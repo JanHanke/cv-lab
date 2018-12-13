@@ -7,6 +7,4 @@
 #include <stdio.h>
 //#include <tchar.h>
 
-
-
 // TODO: Hier auf zusätzliche Header, die das Programm erfordert, verweisen.

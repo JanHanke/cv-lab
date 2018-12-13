@@ -4,7 +4,7 @@ using namespace cv;
 
 int main(int argc, char **argv) {
 
-	Mat image = imread("./canny_input.jpg", 1);
+	Mat image = imread("./img/canny_input.jpg", 1);
 	Mat gray, canny;
 	cvtColor(image, gray, COLOR_RGB2GRAY);
 	Canny(gray, canny, 60, 60 * 3);

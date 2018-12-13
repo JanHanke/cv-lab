@@ -5,7 +5,7 @@ find_package(OpenCV REQUIRED)
 set(SOURCE_FILES
         src/main.cpp
         src/MonoLoop.cpp
-        src/OpenCVLiveLoopVC12.cpp
+        src/LiveLoop.cpp
         src/stdafx.cpp
         )
 set(HEADER_FILES
