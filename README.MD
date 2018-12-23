@@ -22,11 +22,11 @@ mkdir build
 Run `cmake-gui` and set the absolute source path to `~/opencv`.
 Set the build path to `~/opencv/build`. Add the following entries:
 
-| Name                    | Value       | 
-|-------------------------|-------------|
-| `CMAKE_INSTALL_PREFIX`  | `usr/local` |
-| `CMAKE_BUILD_TYPE`      | `Release`   |
-| (optional) `BUILD_DOCS` | `true`      |
+| Name                    | Type   | Value        | 
+|-------------------------|--------|--------------|
+| `CMAKE_INSTALL_PREFIX`  | PATH   | `/usr/local` |
+| `CMAKE_BUILD_TYPE`      | String | `Release`    |
+| (optional) `BUILD_DOCS` | BOOL   | `true`       |
 
 Click _Configure_ and then _Generate_. 
 

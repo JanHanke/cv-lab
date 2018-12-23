@@ -1,10 +1,14 @@
+#include <memory>
 #include "../includes/MonoLoop.h"
 
 const int MY_IMAGE_WIDTH = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS = 20;
 
-int MonoLoop() {
+cv::Mat process(cv::Mat& inputFrame);
+
+int MonoLoop()
+{
 	cv::VideoCapture cap(0);
 
 	if (!cap.isOpened())
@@ -39,7 +43,7 @@ int MonoLoop() {
 		}
 
 		/*******************************todo*****************************/
-		outputFrame = inputFrame;
+		outputFrame = process(inputFrame);
 		/***************************end todo*****************************/
 
 		imshow("cam", outputFrame);
@@ -53,9 +57,18 @@ int MonoLoop() {
 	return 0;
 }
 
+cv::Mat process(cv::Mat& inputFrame)
+{
+    auto outputFrame = inputFrame;
+
+    // do shit
+
+    return outputFrame;
+}
+
 int main(int argc, char *argv[]) {
-	CMonoLoop myLoop;
-//	myLoop.Run();
+	// CMonoLoop myLoop;
+	// myLoop.Run();
 
 	return MonoLoop();
 }
