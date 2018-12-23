@@ -29,16 +29,16 @@ int CMonoLoop::InitCam() {
 		cout << "Cannot open the video cam [0]" << endl;
 		return -1;
 	}
-	double dWidth = m_cap.get(CAP_PROP_FRAME_WIDTH);
-	double dHeight = m_cap.get(CAP_PROP_FRAME_HEIGHT);
+	double dWidth = m_cap.get(cv::CAP_PROP_FRAME_WIDTH);
+	double dHeight = m_cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 	// Set image size
-	m_cap.set(CAP_PROP_FRAME_WIDTH, m_width);
-	m_cap.set(CAP_PROP_FRAME_HEIGHT, m_height);
+	m_cap.set(cv::CAP_PROP_FRAME_WIDTH, m_width);
+	m_cap.set(cv::CAP_PROP_FRAME_HEIGHT, m_height);
 
 	// display the frame size that OpenCV has picked in order to check
 	cout << "Frame size: " << dWidth << " x " << dHeight << endl;
-	namedWindow("LiveImage", WINDOW_AUTOSIZE);
+	namedWindow("LiveImage", cv::WINDOW_AUTOSIZE);
 
 	bool bSuccess = m_cap.read(m_inputFrame);
 
@@ -87,7 +87,7 @@ int CMonoLoop::Run() {
 }
 
 void CMonoLoop::MyInvert() {
-	Size frameSize = m_inputFrame.size();
+	cv::Size frameSize = m_inputFrame.size();
 	int type = m_inputFrame.type();
 	int noChannels = m_inputFrame.channels();
 	if (type != 8 * (noChannels - 1)) // unsigned char only: CV_8U for CV_8UC1, CV_8UC2, CV_8UC3, CV_8UC4
