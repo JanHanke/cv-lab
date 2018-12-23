@@ -1,20 +1,16 @@
-#include "../includes/stdafx.h"
 #include "../includes/MonoLoop.h"
 
-using namespace cv;
-
-CMonoLoop::CMonoLoop(void) {
+CMonoLoop::CMonoLoop() {
 	m_width = 640;
 	m_height = 480;
 	m_isInit = false;
 }
 
-CMonoLoop::~CMonoLoop(void) {
-}
+CMonoLoop::~CMonoLoop(void) = default;
 
 int CMonoLoop::CreateImages() {
 	// create output image, same size and type like input image
-	Size frameSize = m_inputFrame.size();
+	cv::Size frameSize = m_inputFrame.size();
 	int type = m_inputFrame.type();
 	m_outputFrame.create(frameSize, type);
 	// alternative: m_outputFrame = m_inputFrame;

@@ -1,13 +1,11 @@
 #include "../includes/MonoLoop.h"
 
-using namespace cv;
-
 const int MY_IMAGE_WIDTH = 640;
 const int MY_IMAGE_HEIGHT = 480;
 const int MY_WAIT_IN_MS = 20;
 
 int MonoLoop() {
-	VideoCapture cap(0);
+	cv::VideoCapture cap(0);
 
 	if (!cap.isOpened())
 	{
@@ -16,21 +14,21 @@ int MonoLoop() {
 	}
 
 	// Set cameras to 15fps (if wanted!!!)
-	cap.set(CAP_PROP_FPS, 15);
+	cap.set(cv::CAP_PROP_FPS, 15);
 
-	double dWidth = cap.get(CAP_PROP_FRAME_WIDTH);
-	double dHeight = cap.get(CAP_PROP_FRAME_HEIGHT);
+	double dWidth = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+	double dHeight = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
 
 	// Set image size
-	cap.set(CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
-	cap.set(CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
+	cap.set(cv::CAP_PROP_FRAME_WIDTH, MY_IMAGE_WIDTH);
+	cap.set(cv::CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
 
 	// display the frame size that OpenCV has picked in order to check
 	cout << "cam Frame size: " << dWidth << " x " << dHeight << endl;
-	namedWindow("cam", WINDOW_AUTOSIZE);
+	namedWindow("cam", cv::WINDOW_AUTOSIZE);
 
-	Mat inputFrame;
-	Mat outputFrame;
+	cv::Mat inputFrame;
+	cv::Mat outputFrame;
 
 	while (true)
 	{
