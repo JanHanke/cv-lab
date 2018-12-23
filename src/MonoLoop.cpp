@@ -114,5 +114,3 @@ int CMonoLoop::ProcessImage() {
 
 	return 0;
 }
-
-

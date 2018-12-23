@@ -7,7 +7,6 @@ set(SOURCE_FILES
         src/LiveLoop.cpp
         )
 set(HEADER_FILES
-        includes/header.h
         includes/MonoLoop.h
         )
 add_executable(object_tracking ${SOURCE_FILES} ${HEADER_FILES})

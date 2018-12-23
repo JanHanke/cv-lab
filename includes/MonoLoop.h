@@ -1,31 +1,34 @@
 #pragma once
+
 #include <opencv4/opencv2/opencv.hpp>
 #include <iostream>
+
 using namespace std;
 
-class CMonoLoop
-{
-  int m_width;
-  int m_height;
+class CMonoLoop {
+	 int m_width;
+	 int m_height;
 
-  cv::VideoCapture m_cap;
-  cv::Mat m_inputFrame;
-  cv::Mat m_outputFrame;
-  
-  bool m_isInit;
+	 cv::VideoCapture m_cap;
+	 cv::Mat m_inputFrame;
+	 cv::Mat m_outputFrame;
 
-  // example function for manipulating pixels
-  void MyInvert();
+	 bool m_isInit;
 
-  int ProcessImage();
+	 // example function for manipulating pixels
+	 void MyInvert();
 
-  int InitCam();
-  int CreateImages();
+	 int ProcessImage();
+
+	 int InitCam();
+
+	 int CreateImages();
 
 public:
-  CMonoLoop(void);
-  ~CMonoLoop(void);
+	 CMonoLoop(void);
 
-  int Run();
+	 ~CMonoLoop(void);
+
+	 int Run();
 };
 
