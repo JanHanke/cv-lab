@@ -28,7 +28,7 @@ int MonoLoop()
 	}
 
 	// Set cameras to 15fps (if wanted!!!)
-	cap.set(cv::CAP_PROP_FPS, 15);
+	//cap.set(cv::CAP_PROP_FPS, 15);
 
 	double dWidth = cap.get(cv::CAP_PROP_FRAME_WIDTH);
 	double dHeight = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
@@ -82,6 +82,7 @@ int MonoLoop()
 			const float* ranges[] = { hranges, sranges };
 			int channels[] = { 0, 1 };
 			cv::calcHist(&hsv_roi, 1, channels, cv::Mat(), ROI_HIST, 2, histSize, ranges);
+			imshow("debug", hsv_roi);
 			break;
 		}
 	}
@@ -117,6 +118,8 @@ int MonoLoop()
 cv::Mat process(cv::Mat& inputFrame)
 {
     auto outputFrame = inputFrame;
+	cv::Mat dilation_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
+	cv::Mat erosion_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8, 8));
 
     cv::Mat hsv, backproject;
    	cv::cvtColor(inputFrame, hsv, cv::COLOR_BGR2HSV);
@@ -126,6 +129,9 @@ cv::Mat process(cv::Mat& inputFrame)
 	const float* ranges[] = { hranges, sranges };
    	cv::calcBackProject(&hsv, 1, channels, ROI_HIST, backproject, ranges);
 
+	cv::GaussianBlur(backproject, backproject, cv::Size(5, 5), 1);
+	cv::erode(backproject, backproject, erosion_kernel);
+	cv::dilate(backproject, backproject, dilation_kernel);
    	cv::RotatedRect tracking_data = cv::CamShift(backproject, ROI_RECT, cv::TermCriteria());
    	std::vector<cv::Point2f> points(4);
 
