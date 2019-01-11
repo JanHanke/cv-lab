@@ -1,6 +1,7 @@
+#include "stdafx.h"
+#include <opencv2/opencv.hpp>
 #include <vector>
 #include <memory>
-#include "../includes/MonoLoop.h"
 
 const int MY_IMAGE_WIDTH = 640;
 const int MY_IMAGE_HEIGHT = 480;
@@ -22,7 +23,7 @@ int MonoLoop()
 
 	if (!cap.isOpened())
 	{
-		cout << "Cannot open the video cam" << endl;
+		std::cout << "Cannot open the video cam" << std::endl;
 		return -1;
 	}
 
@@ -37,7 +38,7 @@ int MonoLoop()
 	cap.set(cv::CAP_PROP_FRAME_HEIGHT, MY_IMAGE_HEIGHT);
 
 	// display the frame size that OpenCV has picked in order to check
-	cout << "cam Frame size: " << dWidth << " x " << dHeight << endl;
+	std::cout << "cam Frame size: " << dWidth << " x " << dHeight << std::endl;
 	namedWindow("cam", cv::WINDOW_AUTOSIZE);
 	namedWindow("debug", cv::WINDOW_AUTOSIZE);
 	namedWindow("roi", cv::WINDOW_AUTOSIZE);
