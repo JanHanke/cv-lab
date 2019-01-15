@@ -2,6 +2,10 @@
 
 Authors: Jan Hanke, Sebastian Damrath
 
+## Dependencies
+- https://github.com/zaphoyd/websocketpp/ (available in Arch community as `websocketpp`)
+- boost/asio (websocketpp depends on it)
+
 ## OpenCV Installation Linux
 
 - GCC 4.4.x or later
