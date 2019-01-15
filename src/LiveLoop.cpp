@@ -1,7 +1,16 @@
-#include "../includes/stdafx.h"
+
 #include <opencv2/opencv.hpp>
-#include <vector>
-#include <memory>
+#include <websocketpp/config/asio_no_tls.hpp>
+#include <websocketpp/server.hpp>
+
+typedef websocketpp::server<websocketpp::config::asio> server;
+
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
+using websocketpp::lib::bind;
+
+// pull out the type of messages sent by our config
+typedef server::message_ptr message_ptr;
 
 const int MY_IMAGE_WIDTH = 640;
 const int MY_IMAGE_HEIGHT = 480;
@@ -16,9 +25,11 @@ cv::Rect ROI_RECT(cv::Point2d((MY_IMAGE_WIDTH / 2.0) - (ROI_WIDTH / 2.0), (MY_IM
 
 cv::Mat ROI_HIST;
 
-cv::Mat process(cv::Mat &inputFrame);
+cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connection_hdl &ptr);
 
-int MonoLoop() {
+ssize_t send(server *pServer, const websocketpp::connection_hdl &weak_ptr, std::string basic_string);
+
+int loop(server *pServer, const websocketpp::connection_hdl &hdl) {
 	cv::VideoCapture cap(0);
 
 	if (!cap.isOpened())
@@ -94,20 +105,34 @@ int MonoLoop() {
 			break;
 		}
 
-		outputFrame = process(inputFrame);
+		outputFrame = process(inputFrame, pServer, hdl);
 		imshow("cam", outputFrame);
 
 
 		if (cv::waitKey(MY_WAIT_IN_MS) == 27)
 		{
 			std::cout << "ESC key is pressed" << std::endl;
-			break;
+			cv::destroyAllWindows();
+			return 0;
 		}
 	}
 	return 0;
 }
 
-cv::Mat process(cv::Mat &inputFrame) {
+
+void send_message(server *s, const websocketpp::connection_hdl &hdl, std::string const &payload) {
+	try
+	{
+		s->send(hdl, payload, websocketpp::frame::opcode::text);
+	} catch (websocketpp::exception const &e)
+	{
+		std::cout << "Transmission to client failed due to: "
+					 << "(" << e.what() << ")" << std::endl;
+	}
+
+}
+
+cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connection_hdl &hdl) {
 	auto outputFrame = inputFrame;
 	cv::Mat dilation_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
 	cv::Mat erosion_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8, 8));
@@ -130,10 +155,15 @@ cv::Mat process(cv::Mat &inputFrame) {
 	tracking_data.points(points.data());
 
 	std::vector<cv::Point> poly_points;
+	std::ostringstream json;
+	json << "{ points: [";
 	for (const auto &v : points)
 	{
 		poly_points.push_back(v);
+		json << "{ x:" << v.x << ", y:" <<v.y<<"},";
 	}
+	json << "]}";
+	send_message(pServer, hdl, json.str());
 	cv::polylines(outputFrame, poly_points, true, cv::Scalar(0, 255, 0));
 
 	imshow("roi", backproject);
@@ -141,7 +171,64 @@ cv::Mat process(cv::Mat &inputFrame) {
 	return outputFrame;
 }
 
+// Define a callback to handle incoming messages
+void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr msg) {
+	std::cout << "on_message called with hdl: " << hdl.lock().get()
+				 << " and message: " << msg->get_payload()
+				 << std::endl;
+
+	// check for a special command to instruct the server to stop listening so
+	// it can be cleanly exited.
+	if (msg->get_payload() == "stop-listening")
+	{
+		s->stop_listening();
+		return;
+	}
+	if (msg->get_payload() == "start")
+	{
+		loop(s, hdl);
+		return;
+	}
+
+	try
+	{
+		s->send(hdl, msg->get_payload(), msg->get_opcode());
+	} catch (websocketpp::exception const &e)
+	{
+		std::cout << "Echo failed because: "
+					 << "(" << e.what() << ")" << std::endl;
+	}
+}
+
 int main(int argc, char *argv[]) {
-	return MonoLoop();
+	server echo_server;
+
+	try
+	{
+		// Set logging settings
+		echo_server.set_access_channels(websocketpp::log::alevel::all);
+		echo_server.clear_access_channels(websocketpp::log::alevel::frame_payload);
+
+		// Initialize Asio
+		echo_server.init_asio();
+
+		// Register our message handler
+		echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2));
+
+		// Listen on port 8888
+		echo_server.listen(8888);
+
+		// Start the server accept loop
+		echo_server.start_accept();
+
+		// Start the ASIO io_service run loop
+		echo_server.run();
+	} catch (websocketpp::exception const &e)
+	{
+		std::cout << e.what() << std::endl;
+	} catch (...)
+	{
+		std::cout << "other exception" << std::endl;
+	}
 }
 
