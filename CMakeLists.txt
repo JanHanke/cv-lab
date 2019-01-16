@@ -6,6 +6,7 @@ find_package(Boost 1.68.0 REQUIRED system)
 find_package(websocketpp REQUIRED system)
 find_package(Threads REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-std=c++17 -pthread")
 
 add_executable(object_tracking src/LiveLoop.cpp)
 include_directories(${OpenCV_INCLUDE_DIRS})

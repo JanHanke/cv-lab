@@ -25,21 +25,19 @@ cv::Rect ROI_RECT(cv::Point2d((MY_IMAGE_WIDTH / 2.0) - (ROI_WIDTH / 2.0), (MY_IM
 
 cv::Mat ROI_HIST;
 
-cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connection_hdl &ptr);
+cv::Mat process(cv::Mat &inputFrame, server *s, const websocketpp::connection_hdl &hdl);
 
-ssize_t send(server *pServer, const websocketpp::connection_hdl &weak_ptr, std::string basic_string);
-
-int loop(server *pServer, const websocketpp::connection_hdl &hdl) {
+void loop(server *s, const websocketpp::connection_hdl &hdl) {
 	cv::VideoCapture cap(0);
 
 	if (!cap.isOpened())
 	{
 		std::cout << "Cannot open the video cam" << std::endl;
-		return -1;
+		std::terminate();
 	}
 
 	// Set cameras to 15fps (if wanted!!!)
-	//cap.set(cv::CAP_PROP_FPS, 15);
+	cap.set(cv::CAP_PROP_FPS, 15);
 
 	double dWidth = cap.get(cv::CAP_PROP_FRAME_WIDTH);
 	double dHeight = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
@@ -64,15 +62,12 @@ int loop(server *pServer, const websocketpp::connection_hdl &hdl) {
 	// First loop to capture the region of interest
 	while (true)
 	{
-
 		if (!cap.read(inputFrame))
 		{
 			std::cout << "Cannot read a frame from video stream" << std::endl;
 			break;
 		}
-
 		outputFrame = inputFrame;
-
 		// Rectangle to indicate Region Of Interest
 		cv::rectangle(outputFrame, ROI_RECT, cv::Scalar(0, 255, 0));
 
@@ -105,7 +100,7 @@ int loop(server *pServer, const websocketpp::connection_hdl &hdl) {
 			break;
 		}
 
-		outputFrame = process(inputFrame, pServer, hdl);
+		outputFrame = process(inputFrame, s, hdl);
 		imshow("cam", outputFrame);
 
 
@@ -113,10 +108,10 @@ int loop(server *pServer, const websocketpp::connection_hdl &hdl) {
 		{
 			std::cout << "ESC key is pressed" << std::endl;
 			cv::destroyAllWindows();
-			return 0;
+			std::terminate();
 		}
 	}
-	return 0;
+	std::terminate();
 }
 
 
@@ -129,10 +124,9 @@ void send_message(server *s, const websocketpp::connection_hdl &hdl, std::string
 		std::cout << "Transmission to client failed due to: "
 					 << "(" << e.what() << ")" << std::endl;
 	}
-
 }
 
-cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connection_hdl &hdl) {
+cv::Mat process(cv::Mat &inputFrame, server *s, const websocketpp::connection_hdl &hdl) {
 	auto outputFrame = inputFrame;
 	cv::Mat dilation_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(4, 4));
 	cv::Mat erosion_kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(8, 8));
@@ -157,13 +151,22 @@ cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connect
 	std::vector<cv::Point> poly_points;
 	std::ostringstream json;
 	json << "{ points: [";
+	int i = 0;
 	for (const auto &v : points)
 	{
 		poly_points.push_back(v);
-		json << "{ x:" << v.x << ", y:" <<v.y<<"},";
+		if (i == points.size() - 1)
+		{
+			json << "{ x:" << v.x << ", y:" << v.y << "}";
+		}
+		else
+		{
+			json << "{ x:" << v.x << ", y:" << v.y << "},";
+		}
+		i++;
 	}
 	json << "]}";
-	send_message(pServer, hdl, json.str());
+	send_message(s, hdl, json.str());
 	cv::polylines(outputFrame, poly_points, true, cv::Scalar(0, 255, 0));
 
 	imshow("roi", backproject);
@@ -172,7 +175,7 @@ cv::Mat process(cv::Mat &inputFrame, server *pServer, const websocketpp::connect
 }
 
 // Define a callback to handle incoming messages
-void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr msg) {
+void on_message(server *s, const websocketpp::connection_hdl &hdl, const message_ptr &msg) {
 	std::cout << "on_message called with hdl: " << hdl.lock().get()
 				 << " and message: " << msg->get_payload()
 				 << std::endl;
@@ -184,9 +187,10 @@ void on_message(server *s, const websocketpp::connection_hdl &hdl, message_ptr m
 		s->stop_listening();
 		return;
 	}
+
 	if (msg->get_payload() == "start")
 	{
-		loop(s, hdl);
+		std::thread([=] { return loop(s, hdl); }).detach();
 		return;
 	}
 
@@ -208,19 +212,14 @@ int main(int argc, char *argv[]) {
 		// Set logging settings
 		echo_server.set_access_channels(websocketpp::log::alevel::all);
 		echo_server.clear_access_channels(websocketpp::log::alevel::frame_payload);
-
 		// Initialize Asio
 		echo_server.init_asio();
-
 		// Register our message handler
 		echo_server.set_message_handler(bind(&on_message, &echo_server, ::_1, ::_2));
-
 		// Listen on port 8888
 		echo_server.listen(8888);
-
 		// Start the server accept loop
 		echo_server.start_accept();
-
 		// Start the ASIO io_service run loop
 		echo_server.run();
 	} catch (websocketpp::exception const &e)
