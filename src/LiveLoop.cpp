@@ -150,18 +150,17 @@ cv::Mat process(cv::Mat &inputFrame, server *s, const websocketpp::connection_hd
 
 	std::vector<cv::Point> poly_points;
 	std::ostringstream json;
-	json << "{ points: [";
+	json << "{ \"points\": [";
 	int i = 0;
 	for (const auto &v : points)
 	{
 		poly_points.push_back(v);
 		if (i == points.size() - 1)
 		{
-			json << "{ x:" << v.x << ", y:" << v.y << "}";
-		}
-		else
+			json << "{ \"x\":" << v.x << ", \"y\":" << v.y << "}";
+		} else
 		{
-			json << "{ x:" << v.x << ", y:" << v.y << "},";
+			json << "{ \"x\":" << v.x << ", \"y\":" << v.y << "},";
 		}
 		i++;
 	}
